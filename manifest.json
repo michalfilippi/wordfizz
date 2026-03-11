@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "WordFizz",
+  "version": "1.0",
+  "description": "AI-powered writing assistant — select text in any field to improve it",
+  "permissions": ["storage"],
+  "host_permissions": ["https://generativelanguage.googleapis.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "WordFizz Settings"
+  }
+}

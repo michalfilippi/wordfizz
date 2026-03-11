@@ -1,0 +1,378 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  width: 300px;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  color: #1e293b;
+  background: #fff;
+}
+
+header {
+  padding: 16px 16px 12px;
+  background: #1d4ed8;
+  color: #fff;
+}
+
+header h1 {
+  margin: 0 0 2px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+header p {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+main {
+  padding: 16px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+input[type="password"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1e293b;
+  outline: none;
+  font-family: monospace;
+}
+
+input[type="password"]:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1e293b;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+}
+
+select:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 9px;
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+button:hover {
+  background: #1e40af;
+}
+
+#status {
+  margin-top: 8px;
+  font-size: 13px;
+  min-height: 18px;
+  text-align: center;
+}
+
+#status.success { color: #16a34a; }
+#status.error   { color: #dc2626; }
+
+hr {
+  border: none;
+  border-top: 1px solid #f1f5f9;
+  margin: 14px 0;
+}
+
+.help h2 {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin: 0 0 8px;
+}
+
+.help ol {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  line-height: 1.7;
+  font-size: 13px;
+  color: #374151;
+}
+
+.help p {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+.help a {
+  color: #1d4ed8;
+  text-decoration: none;
+}
+
+.help a:hover {
+  text-decoration: underline;
+}
+
+/* ── Actions section ──────────────────────────────────────────────────────── */
+.actions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-label {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.add-btn {
+  margin-top: 0;
+  width: auto;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #374151;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.add-btn:hover {
+  background: #e2e8f0;
+}
+
+.action-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: #f8fafc;
+}
+
+.action-label {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  font-size: 13px;
+  color: #1e293b;
+  background: #fff;
+  outline: none;
+  margin-bottom: 6px;
+}
+
+.action-label:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.action-prompt {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #374151;
+  background: #fff;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.action-prompt:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.action-delete-btn {
+  margin-top: 0;
+  width: auto;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #fff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.action-delete-btn:hover {
+  background: #fee2e2;
+}
+
+/* ── Dark-toolbar toggle ──────────────────────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggle-label {
+  display: inline;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: #cbd5e1;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-track {
+  background: #1d4ed8;
+}
+
+.toggle-switch input:checked + .toggle-track::after {
+  transform: translateX(16px);
+}
+
+/* ── Popup dark theme ─────────────────────────────────────────────────────── */
+body.dark {
+  background: #0f1117;
+  color: #e2e8f0;
+}
+
+body.dark main {
+  background: #0f1117;
+}
+
+body.dark label,
+body.dark .toggle-label,
+body.dark .section-label {
+  color: #94a3b8;
+}
+
+body.dark input[type="password"],
+body.dark select,
+body.dark .action-label,
+body.dark .action-prompt {
+  background: #1e2130;
+  border-color: #2d3554;
+  color: #e2e8f0;
+}
+
+body.dark input[type="password"]:focus,
+body.dark select:focus,
+body.dark .action-label:focus,
+body.dark .action-prompt:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+body.dark hr {
+  border-color: #1e2130;
+}
+
+body.dark .action-card {
+  background: #1a1d2b;
+  border-color: #2d3554;
+}
+
+body.dark .add-btn {
+  background: #1e2130;
+  border-color: #2d3554;
+  color: #cbd5e1;
+}
+
+body.dark .add-btn:hover {
+  background: #2d3554;
+}
+
+body.dark .action-delete-btn {
+  background: #1e2130;
+  border-color: #7f1d1d;
+  color: #f87171;
+}
+
+body.dark .action-delete-btn:hover {
+  background: #2d1515;
+}
+
+body.dark .help h2,
+body.dark .help ol,
+body.dark .help p {
+  color: #64748b;
+}
+
+body.dark .help a {
+  color: #60a5fa;
+}
+
+body.dark .toggle-track {
+  background: #2d3554;
+}
+
+body.dark #status.success { color: #4ade80; }
+body.dark #status.error   { color: #f87171; }
