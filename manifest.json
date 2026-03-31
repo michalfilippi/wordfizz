@@ -3,7 +3,7 @@
   "name": "WordFizz",
   "version": "1.0",
   "description": "AI-powered writing assistant — select text in any field to improve it",
-  "permissions": ["storage"],
+  "permissions": ["storage", "contextMenus"],
   "host_permissions": ["https://generativelanguage.googleapis.com/*"],
   "background": {
     "service_worker": "background.js"
@@ -12,7 +12,8 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "css": ["content.css"]
+      "css": ["content.css"],
+      "all_frames": true
     }
   ],
   "action": {
