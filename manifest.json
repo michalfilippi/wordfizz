@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "WordFizz",
   "version": "1.0",
-  "description": "AI-powered writing assistant — select text in any field to improve it",
+  "description": "AI-powered writing assistant for Chrome and Brave — select text in any field to improve it",
   "permissions": ["storage", "contextMenus"],
   "host_permissions": ["https://generativelanguage.googleapis.com/*"],
   "background": {
