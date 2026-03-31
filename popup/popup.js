@@ -4,6 +4,11 @@ const DEFAULT_ACTIONS = [
     label: "✨ Improve",
     prompt: "Rewrite this text with improved wording and grammar. Keep the same meaning, tone, structure, and line breaks. Do not add, remove, or merge lines. Return only the rewritten text.",
   },
+  {
+    id: "2",
+    label: "📝 Fix grammar",
+    prompt: "Fix any grammar, spelling, and punctuation errors in this text. Do not change the wording, style, or structure beyond what is necessary to correct errors. Return only the corrected text.",
+  },
 ];
 
 // ── API key ───────────────────────────────────────────────────────────────────

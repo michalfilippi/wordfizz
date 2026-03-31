@@ -4,6 +4,11 @@ const DEFAULT_ACTIONS = [
     label: "✨ Improve",
     prompt: "Rewrite this text with improved wording and grammar. Keep the same meaning, tone, structure, and line breaks. Do not add, remove, or merge lines. Return only the rewritten text.",
   },
+  {
+    id: "2",
+    label: "📝 Fix grammar",
+    prompt: "Fix any grammar, spelling, and punctuation errors in this text. Do not change the wording, style, or structure beyond what is necessary to correct errors. Return only the corrected text.",
+  },
 ];
 
 let actions = [...DEFAULT_ACTIONS];
@@ -123,12 +128,28 @@ function createToolbar() {
   el.setAttribute("role", "dialog");
   el.setAttribute("aria-label", "WordFizz writing assistant");
 
+  // Brand header
+  const header = document.createElement("div");
+  header.className = "wordfizz-header";
+  header.innerHTML = `<span class="wordfizz-brand">WordFizz</span>`;
+  el.appendChild(header);
+
+  // Loading state — three bouncing dots
+  const loadingEl = document.createElement("div");
+  loadingEl.className = "wordfizz-loading";
+  loadingEl.innerHTML = `
+    <span class="wordfizz-loading-dot"></span>
+    <span class="wordfizz-loading-dot"></span>
+    <span class="wordfizz-loading-dot"></span>
+  `;
+  el.appendChild(loadingEl);
+
   // Result text — hidden until a suggestion arrives
   const resultText = document.createElement("div");
   resultText.className = "wordfizz-result-text";
   el.appendChild(resultText);
 
-  // Action buttons row
+  // Action buttons row (hidden in right-click flow, kept for direct-click compat)
   const actionsRow = document.createElement("div");
   actionsRow.className = "wordfizz-actions-row";
   actions.forEach((action) => {
@@ -211,12 +232,12 @@ function showResult(text) {
 // Reset toolbar back to the action buttons view
 function resetToolbar() {
   if (!toolbar) return;
+  toolbar.querySelector(".wordfizz-loading").style.display = "none";
   toolbar.querySelector(".wordfizz-result-text").style.display = "none";
   toolbar.querySelector(".wordfizz-result-text").innerHTML = "";
   toolbar.querySelector(".wordfizz-actions-row").style.display = "flex";
   toolbar.querySelector(".wordfizz-confirm-row").style.display = "none";
   delete toolbar.dataset.pendingResult;
-  // Re-position after the toolbar has shrunk back to button-only height
   if (activeElement) requestAnimationFrame(() => positionNear(activeElement, toolbar));
 }
 
@@ -225,16 +246,7 @@ function setLoading(isLoading) {
   toolbar.querySelectorAll(".wordfizz-action-btn").forEach((btn) => {
     btn.disabled = isLoading;
   });
-
-  const existing = toolbar.querySelector(".wordfizz-spinner");
-  if (isLoading && !existing) {
-    const spinner = document.createElement("span");
-    spinner.className = "wordfizz-spinner";
-    spinner.textContent = "…";
-    toolbar.querySelector(".wordfizz-actions-row").appendChild(spinner);
-  } else if (!isLoading && existing) {
-    existing.remove();
-  }
+  toolbar.querySelector(".wordfizz-loading").style.display = isLoading ? "flex" : "none";
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -311,50 +323,51 @@ function isEditableField(el) {
   return false;
 }
 
-document.addEventListener("mouseup", (e) => {
+// Capture selection state when the user right-clicks so it's available when
+// the context menu item fires (by then the selection may have changed).
+document.addEventListener("contextmenu", (e) => {
   if (e.target.closest("#wordfizz-toolbar")) return;
 
-  // Small delay lets the browser finalize the selection,
-  // which can lag behind the mouseup event in some browsers and frameworks.
-  setTimeout(() => {
-    // Include contenteditable in the closest() search so Slack/Quill/etc. are found.
-    const el =
-      e.target.closest('textarea, input, [contenteditable="true"], [contenteditable=""]') ??
-      (isEditableField(document.activeElement) ? document.activeElement : null);
+  const el =
+    e.target.closest('textarea, input, [contenteditable]:not([contenteditable="false"])') ??
+    (isEditableField(document.activeElement) ? document.activeElement : null);
 
-    if (!el || !isEditableField(el)) {
-      hideAll();
-      return;
-    }
+  if (!el || !isEditableField(el)) {
+    activeElement = null;
+    return;
+  }
 
-    let selected = "";
+  let selected = "";
 
-    if ("selectionStart" in el) {
-      // Standard textarea / input
-      const start = el.selectionStart ?? 0;
-      const end = el.selectionEnd ?? 0;
-      selected = el.value.slice(start, end).trim();
+  if ("selectionStart" in el) {
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    selected = el.value.slice(start, end).trim();
+    if (!selected) { activeElement = null; return; }
+    activeElement = el;
+    selectionStart = start;
+    selectionEnd = end;
+    savedRange = null;
+  } else {
+    const selection = window.getSelection();
+    selected = selection?.toString().trim() ?? "";
+    if (!selected) { activeElement = null; return; }
+    activeElement = el;
+    savedRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+  }
 
-      if (!selected) { hideAll(); return; }
+  originalText = selected;
+});
 
-      activeElement = el;
-      selectionStart = start;
-      selectionEnd = end;
-      savedRange = null;
-    } else {
-      // contenteditable — use the Selection API
-      const selection = window.getSelection();
-      selected = selection?.toString().trim() ?? "";
-
-      if (!selected) { hideAll(); return; }
-
-      activeElement = el;
-      savedRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
-    }
-
-    originalText = selected;
-    showToolbar(el);
-  }, 10);
+// Triggered by background when the user clicks a WordFizz context menu item
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === "TRIGGER_ACTION") {
+    if (!activeElement || !originalText) return;
+    showToolbar(activeElement);
+    // Hide action buttons — action was already chosen from the context menu
+    if (toolbar) toolbar.querySelector(".wordfizz-actions-row").style.display = "none";
+    onActionClick(message.action);
+  }
 });
 
 // Hide on outside click
