@@ -61,20 +61,26 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const action = actions.find((a) => a.id === info.menuItemId);
   if (!action) return;
 
-  console.log("[WordFizz] context menu clicked, frameId:", info.frameId);
-
-  // Try the specific frame first; if no content script is listening there,
-  // fall back to the top-level frame (frameId 0).
-  try {
-    await chrome.tabs.sendMessage(tab.id, { type: "TRIGGER_ACTION", action }, { frameId: info.frameId });
-  } catch {
-    console.warn("[WordFizz] no content script in frameId", info.frameId, "— retrying in top frame");
-    try {
-      await chrome.tabs.sendMessage(tab.id, { type: "TRIGGER_ACTION", action }, { frameId: 0 });
-    } catch (err) {
-      console.error("[WordFizz] content script unreachable:", err.message);
+  // Send to the frame where the right-click happened. If that fails (no
+  // content script there), fall back to the top-level frame.
+  // Note: we do NOT await the primary send — the content script never calls
+  // sendResponse for TRIGGER_ACTION, so awaiting it would always throw
+  // "message port closed" and incorrectly trigger the fallback.
+  chrome.tabs.sendMessage(
+    tab.id,
+    { type: "TRIGGER_ACTION", action },
+    { frameId: info.frameId },
+    () => {
+      if (chrome.runtime.lastError && info.frameId !== 0) {
+        chrome.tabs.sendMessage(
+          tab.id,
+          { type: "TRIGGER_ACTION", action },
+          { frameId: 0 },
+          () => void chrome.runtime.lastError
+        );
+      }
     }
-  }
+  );
 });
 
 // ── Message handler ───────────────────────────────────────────────────────────
