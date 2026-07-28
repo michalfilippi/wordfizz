@@ -60,7 +60,21 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const actions = stored?.length ? stored : DEFAULT_ACTIONS;
   const action = actions.find((a) => a.id === info.menuItemId);
   if (!action) return;
-  chrome.tabs.sendMessage(tab.id, { type: "TRIGGER_ACTION", action }, { frameId: info.frameId });
+
+  console.log("[WordFizz] context menu clicked, frameId:", info.frameId);
+
+  // Try the specific frame first; if no content script is listening there,
+  // fall back to the top-level frame (frameId 0).
+  try {
+    await chrome.tabs.sendMessage(tab.id, { type: "TRIGGER_ACTION", action }, { frameId: info.frameId });
+  } catch {
+    console.warn("[WordFizz] no content script in frameId", info.frameId, "— retrying in top frame");
+    try {
+      await chrome.tabs.sendMessage(tab.id, { type: "TRIGGER_ACTION", action }, { frameId: 0 });
+    } catch (err) {
+      console.error("[WordFizz] content script unreachable:", err.message);
+    }
+  }
 });
 
 // ── Message handler ───────────────────────────────────────────────────────────

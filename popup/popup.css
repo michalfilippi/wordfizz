@@ -11,22 +11,57 @@ body {
 }
 
 header {
-  padding: 16px 16px 12px;
+  padding: 11px 16px;
   background: #1d4ed8;
   color: #fff;
 }
 
 header h1 {
-  margin: 0 0 2px;
-  font-size: 18px;
+  margin: 0;
+  font-size: 16px;
   font-weight: 700;
 }
 
-header p {
-  margin: 0;
-  font-size: 12px;
-  opacity: 0.85;
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 0 8px;
+  gap: 2px;
 }
+
+.tab-btn {
+  flex: 1;
+  margin-top: 0;
+  padding: 9px 4px;
+  background: none;
+  color: #64748b;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+  width: auto;
+}
+
+.tab-btn:hover {
+  color: #1e293b;
+  background: none;
+}
+
+.tab-btn.active {
+  color: #1d4ed8;
+  border-bottom-color: #1d4ed8;
+}
+
+/* ── Tab panels ───────────────────────────────────────────────────────────── */
+
+.tab-panel[hidden] { display: none; }
 
 main {
   padding: 16px;
@@ -139,6 +174,125 @@ hr {
 
 .help a:hover {
   text-decoration: underline;
+}
+
+/* ── Clipboard / Try it tab ───────────────────────────────────────────────── */
+
+#clipboard-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1e293b;
+  background: #fff;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.55;
+}
+
+#clipboard-input:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.clipboard-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.clipboard-action-btn {
+  margin-top: 0;
+  width: auto;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #f1f5f9;
+  color: #374151;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.clipboard-action-btn:hover {
+  background: #e2e8f0;
+}
+
+.clipboard-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.clipboard-result-wrap {
+  display: none;
+  margin-top: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.clipboard-result {
+  padding: 10px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #1f2937;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 160px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
+
+.clipboard-loading {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.clipboard-error {
+  color: #dc2626;
+}
+
+.clipboard-copy-btn {
+  display: none;
+  margin-top: 0;
+  width: 100%;
+  padding: 7px;
+  background: #f8fafc;
+  color: #374151;
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.clipboard-copy-btn:hover {
+  background: #e2e8f0;
+}
+
+/* Diff highlights inside the popup */
+.diff-added {
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 3px;
+  padding: 0 2px;
+  text-decoration: none;
+}
+
+.diff-removed {
+  background: #fee2e2;
+  color: #991b1b;
+  text-decoration: line-through;
+  text-decoration-color: rgba(153, 27, 27, 0.5);
+  border-radius: 3px;
+  padding: 0 2px;
 }
 
 /* ── Actions section ──────────────────────────────────────────────────────── */
@@ -308,6 +462,25 @@ body.dark main {
   background: #0f1117;
 }
 
+body.dark .tabs {
+  background: #0f1117;
+  border-bottom-color: #1e2130;
+}
+
+body.dark .tab-btn {
+  color: #475569;
+}
+
+body.dark .tab-btn:hover {
+  color: #94a3b8;
+  background: none;
+}
+
+body.dark .tab-btn.active {
+  color: #60a5fa;
+  border-bottom-color: #60a5fa;
+}
+
 body.dark label,
 body.dark .toggle-label,
 body.dark .section-label {
@@ -376,3 +549,61 @@ body.dark .toggle-track {
 
 body.dark #status.success { color: #4ade80; }
 body.dark #status.error   { color: #f87171; }
+
+body.dark #clipboard-input {
+  background: #1e2130;
+  border-color: #2d3554;
+  color: #e2e8f0;
+}
+
+body.dark #clipboard-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+body.dark .clipboard-action-btn {
+  background: #1e2130;
+  border-color: #2d3554;
+  color: #cbd5e1;
+}
+
+body.dark .clipboard-action-btn:hover {
+  background: #2d3554;
+}
+
+body.dark .clipboard-result-wrap {
+  border-color: #2d3554;
+}
+
+body.dark .clipboard-result {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+body.dark .clipboard-loading {
+  color: #4b5563;
+}
+
+body.dark .clipboard-error {
+  color: #f87171;
+}
+
+body.dark .clipboard-copy-btn {
+  background: #1a1d2b;
+  border-top-color: #2d3554;
+  color: #cbd5e1;
+}
+
+body.dark .clipboard-copy-btn:hover {
+  background: #2d3554;
+}
+
+body.dark .diff-added {
+  background: rgba(52, 211, 153, 0.14);
+  color: #6ee7b7;
+}
+
+body.dark .diff-removed {
+  background: rgba(248, 113, 113, 0.1);
+  color: rgba(252, 165, 165, 0.65);
+  text-decoration-color: rgba(248, 113, 113, 0.45);
+}
