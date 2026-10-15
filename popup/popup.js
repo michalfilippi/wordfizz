@@ -1,3 +1,86 @@
+// ── Diff helpers (mirrored from content.js) ───────────────────────────────────
+
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function tokenize(text) {
+  return text.match(/[A-Za-z0-9'\u00C0-\u024F]+|[^\w\s]|\s+/g) ?? [];
+}
+
+function lcsDiff(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1]
+        ? dp[i-1][j-1] + 1
+        : Math.max(dp[i-1][j], dp[i][j-1]);
+  const ops = [];
+  let i = m, j = n;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && a[i-1] === b[j-1]) {
+      ops.unshift({ type: "equal",  value: a[i-1] }); i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+      ops.unshift({ type: "insert", value: b[j-1] }); j--;
+    } else {
+      ops.unshift({ type: "delete", value: a[i-1] }); i--;
+    }
+  }
+  return ops;
+}
+
+function mergeOps(ops) {
+  return ops.reduce((acc, op) => {
+    const last = acc[acc.length - 1];
+    if (last?.type === op.type) last.value += op.value;
+    else acc.push({ ...op });
+    return acc;
+  }, []);
+}
+
+function renderDiff(oldText, newText) {
+  if (oldText.length + newText.length > 6000) return escapeHtml(newText);
+  const ops = lcsDiff(tokenize(oldText), tokenize(newText));
+  const html = [];
+  let i = 0;
+  while (i < ops.length) {
+    const op = ops[i];
+    if (op.type === "equal") { html.push(escapeHtml(op.value)); i++; continue; }
+    let delStr = "", insStr = "";
+    let j = i;
+    while (j < ops.length) {
+      const cur = ops[j];
+      if (cur.type === "delete") { delStr += cur.value; j++; }
+      else if (cur.type === "insert") { insStr += cur.value; j++; }
+      else if (/^\s+$/.test(cur.value) && j + 1 < ops.length && ops[j + 1].type !== "equal") {
+        delStr += cur.value; insStr += cur.value; j++;
+      }
+      else break;
+    }
+    if (!/\s/.test(delStr) && !/\s/.test(insStr) && delStr && insStr) {
+      const charOps = mergeOps(lcsDiff([...delStr], [...insStr]));
+      const lcsLen = charOps.reduce((n, o) => o.type === "equal" ? n + o.value.length : n, 0);
+      const sim = (2 * lcsLen) / (delStr.length + insStr.length);
+      if (sim >= 0.4) {
+        html.push(charOps.map(({ type, value }) => {
+          const v = escapeHtml(value);
+          if (type === "insert") return `<mark class="diff-added">${v}</mark>`;
+          if (type === "delete") return `<del class="diff-removed">${v}</del>`;
+          return v;
+        }).join(""));
+        i = j; continue;
+      }
+    }
+    if (delStr) html.push(`<del class="diff-removed">${escapeHtml(delStr)}</del>`);
+    if (insStr) html.push(`<mark class="diff-added">${escapeHtml(insStr)}</mark>`);
+    i = j;
+  }
+  return html.join("");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const DEFAULT_ACTIONS = [
   {
     id: "1",
@@ -10,6 +93,23 @@ const DEFAULT_ACTIONS = [
     prompt: "Fix any grammar, spelling, and punctuation errors in this text. Do not change the wording, style, or structure beyond what is necessary to correct errors. Return only the corrected text.",
   },
 ];
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => {
+      b.classList.remove("active");
+      b.setAttribute("aria-selected", "false");
+    });
+    document.querySelectorAll(".tab-panel").forEach((p) => {
+      p.hidden = true;
+    });
+    btn.classList.add("active");
+    btn.setAttribute("aria-selected", "true");
+    document.getElementById(`tab-${btn.dataset.tab}`).hidden = false;
+  });
+});
 
 // ── API key ───────────────────────────────────────────────────────────────────
 
@@ -66,6 +166,7 @@ const addActionBtn = document.getElementById("add-action-btn");
 chrome.storage.sync.get("actions", ({ actions: stored }) => {
   actions = stored && stored.length > 0 ? stored : [...DEFAULT_ACTIONS];
   renderActions();
+  renderClipboardActions();
 });
 
 addActionBtn.addEventListener("click", () => {
@@ -79,6 +180,7 @@ addActionBtn.addEventListener("click", () => {
 });
 
 function renderActions() {
+  renderClipboardActions();
   actionsList.innerHTML = "";
   actions.forEach((action, index) => {
     const card = document.createElement("div");
@@ -126,3 +228,65 @@ function scheduleAutoSave() {
     chrome.storage.sync.set({ actions });
   }, 400);
 }
+
+// ── Clipboard mode ────────────────────────────────────────────────────────────
+
+const clipboardInput = document.getElementById("clipboard-input");
+const clipboardActionsRow = document.getElementById("clipboard-actions-row");
+const clipboardResultWrap = document.getElementById("clipboard-result-wrap");
+const clipboardResult = document.getElementById("clipboard-result");
+const clipboardCopyBtn = document.getElementById("clipboard-copy-btn");
+
+let clipboardResultText = "";
+
+function renderClipboardActions() {
+  clipboardActionsRow.innerHTML = "";
+  actions.forEach((action) => {
+    const btn = document.createElement("button");
+    btn.className = "clipboard-action-btn";
+    btn.textContent = action.label;
+    btn.addEventListener("click", () => runClipboardAction(action));
+    clipboardActionsRow.appendChild(btn);
+  });
+}
+
+async function runClipboardAction(action) {
+  const text = clipboardInput.value.trim();
+  if (!text) {
+    clipboardInput.focus();
+    return;
+  }
+
+  clipboardResultWrap.classList.remove("has-result");
+  clipboardResult.innerHTML = '<span class="clipboard-loading">Thinking…</span>';
+  clipboardResultWrap.style.display = "block";
+  clipboardCopyBtn.style.display = "none";
+
+  const btns = clipboardActionsRow.querySelectorAll(".clipboard-action-btn");
+  btns.forEach((b) => (b.disabled = true));
+
+  const response = await chrome.runtime.sendMessage({
+    type: "IMPROVE_TEXT",
+    text,
+    prompt: action.prompt,
+  });
+
+  btns.forEach((b) => (b.disabled = false));
+
+  if (response.error) {
+    clipboardResult.innerHTML = `<span class="clipboard-error">⚠ ${escapeHtml(response.error)}</span>`;
+    clipboardCopyBtn.style.display = "none";
+  } else {
+    clipboardResultText = response.result;
+    clipboardResult.innerHTML = renderDiff(text, response.result);
+    clipboardCopyBtn.style.display = "block";
+    clipboardResultWrap.classList.add("has-result");
+  }
+}
+
+clipboardCopyBtn.addEventListener("click", async () => {
+  if (!clipboardResultText) return;
+  await navigator.clipboard.writeText(clipboardResultText);
+  clipboardCopyBtn.textContent = "Copied!";
+  setTimeout(() => { clipboardCopyBtn.textContent = "Copy result"; }, 2000);
+});

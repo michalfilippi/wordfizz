@@ -60,7 +60,27 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const actions = stored?.length ? stored : DEFAULT_ACTIONS;
   const action = actions.find((a) => a.id === info.menuItemId);
   if (!action) return;
-  chrome.tabs.sendMessage(tab.id, { type: "TRIGGER_ACTION", action }, { frameId: info.frameId });
+
+  // Send to the frame where the right-click happened. If that fails (no
+  // content script there), fall back to the top-level frame.
+  // Note: we do NOT await the primary send — the content script never calls
+  // sendResponse for TRIGGER_ACTION, so awaiting it would always throw
+  // "message port closed" and incorrectly trigger the fallback.
+  chrome.tabs.sendMessage(
+    tab.id,
+    { type: "TRIGGER_ACTION", action },
+    { frameId: info.frameId },
+    () => {
+      if (chrome.runtime.lastError && info.frameId !== 0) {
+        chrome.tabs.sendMessage(
+          tab.id,
+          { type: "TRIGGER_ACTION", action },
+          { frameId: 0 },
+          () => void chrome.runtime.lastError
+        );
+      }
+    }
+  );
 });
 
 // ── Message handler ───────────────────────────────────────────────────────────
